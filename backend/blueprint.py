@@ -96,7 +96,7 @@ def post_event():
                 time:
                   type: string
                   default:  none
-                  example: 18:00
+                  example: "20:30"
                 organizer:
                   type: string
                   default:  none
