@@ -9,7 +9,7 @@ from gncitizen.utils.utilsjwt import get_id_role_if_exists
 from gncitizen.utils.utilssqlalchemy import get_geojson_feature, json_resp
 from server import db
 from .models import EventModel
-
+from flask_jwt_extended import jwt_optional, jwt_required
 blueprint = Blueprint('events', __name__)
 
 
@@ -24,7 +24,7 @@ def get_event(pk):
     """Get an event by id
     ---
     tags:
-      - Evènements (Module externe)
+      - Events (External module)
     parameters:
       - name: pk
         in: path
@@ -50,7 +50,7 @@ def get_event(pk):
         for k in result_dict:
             if k not in ('id_creator', 'geom'):
                 feature['properties'][k] = result_dict[k]
-            features.append(feature)
+        features.append(feature)
         return {'features': features}, 200
     except Exception as e:
         return {'error_message': str(e)}, 400
@@ -58,13 +58,13 @@ def get_event(pk):
 
 @blueprint.route('/', methods=['POST'])
 @json_resp
-@jwt_optional
+@jwt_required
 def post_event():
     """Gestion des évènements
     If method is POST, add a sight to database else, return all sights
         ---
         tags:
-          - Evènements (Module externe)
+          - Events (External module)
         summary: Creates a new event
         consumes:
           - application/json
@@ -156,7 +156,7 @@ def post_event():
         feature = get_geojson_feature(result.geom)
         for k in result_dict:
             if k not in ('id_creator', 'geom'):
-                feature['properties'][k] = result_dict[k]
+                wfeature['properties'][k] = result_dict[k]
         features.append(feature)
         return {
                    'message': 'New event created.',
@@ -166,13 +166,39 @@ def post_event():
         return {'error_message': str(e)}, 400
 
 
+@blueprint.route('/<int:pk>', methods=['DELETE'])
+@jwt_required
+@json_resp
+def delete_event(pk):
+    """Delete an event by id
+    ---
+    tags:
+      - Events (External module)
+    parameters:
+      - name: pk
+        in: path
+        type: integer
+        required: true
+        example: 1
+    responses:
+      200:
+        description: Event deleted
+    """
+    event = EventModel.query.get(pk)
+    if event is None:
+        return {'error_message': 'Aucun évènement correspondant'}, 400
+
+    db.session.delete(event)
+    db.session.commit()
+    return {'message': 'Evènement effacé'}, 200
+
 @blueprint.route('/', methods=['GET'])
 @json_resp
 def get_events():
     """Get all events
     ---
     tags:
-      - Evènements (Module externe)
+      - Events (External module)
     definitions:
       FeatureCollection:
         properties:
@@ -194,7 +220,7 @@ def get_events():
             for k in event_dict:
                 if k not in ('id_creator', 'geom'):
                     feature['properties'][k] = event_dict[k]
-                features.append(feature)
+            features.append(feature)
         return FeatureCollection(features)
     except Exception as e:
         return {'error_message': str(e)}, 400
