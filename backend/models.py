@@ -8,7 +8,7 @@ from datetime import datetime
 @serializable
 @geoserializable
 class EventModel(db.Model):
-    """Table des observations"""
+    """Table des évènements"""
     __tablename__ = 'events'
     __table_args__ = {'schema': 'gncitizen'}
     id_event = db.Column(db.Integer, primary_key=True, unique=True)
