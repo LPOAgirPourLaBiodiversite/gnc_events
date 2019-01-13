@@ -1,16 +1,26 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
 from geoalchemy2 import Geometry
 
+from gncitizen.core.ref_geo.models import LAreas
+from gncitizen.core.commons.models import TimestampMixinModel
+from gncitizen.core.users.models import UserModel
 from gncitizen.utils.utilssqlalchemy import serializable, geoserializable
 from server import db
-from datetime import datetime
+
+
+def create_schema(db):
+    db.session.execute('CREATE SCHEMA IF NOT EXISTS gnc_events')
+    db.session.commit()
 
 
 @serializable
 @geoserializable
-class EventModel(db.Model):
+class EventModel(TimestampMixinModel, db.Model):
     """Table des évènements"""
-    __tablename__ = 'events'
-    __table_args__ = {'schema': 'gncitizen'}
+    __tablename__ = 't_events'
+    __table_args__ = {'schema': 'gnc_events'}
     id_event = db.Column(db.Integer, primary_key=True, unique=True)
     organizer = db.Column(db.String(200))
     thematic = db.Column(db.String(200))
@@ -22,6 +32,5 @@ class EventModel(db.Model):
     contact_phone = db.Column(db.String(150))
     picture = db.Column(db.Text)
     geom = db.Column(Geometry('POINT', 4326))
-    municipality = db.Column(db.String(5), db.ForeignKey('ref_geo.li_municipalities.id_municipality'))
-    id_creator = db.Column(db.Integer, db.ForeignKey('gncitizen.users.id_user'))
-    timestamp_create = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    municipality = db.Column(db.Integer, db.ForeignKey(LAreas.id_area))
+    id_creator = db.Column(db.Integer, db.ForeignKey(UserModel.id_user))

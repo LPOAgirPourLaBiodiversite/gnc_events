@@ -156,12 +156,12 @@ def post_event():
         feature = get_geojson_feature(result.geom)
         for k in result_dict:
             if k not in ('id_creator', 'geom'):
-                wfeature['properties'][k] = result_dict[k]
+                feature['properties'][k] = result_dict[k]
         features.append(feature)
         return {
-                   'message': 'New event created.',
-                   'features': features,
-               }, 200
+            'message': 'New event created.',
+            'features': features,
+        }, 200
     except Exception as e:
         return {'error_message': str(e)}, 400
 
@@ -191,6 +191,7 @@ def delete_event(pk):
     db.session.delete(event)
     db.session.commit()
     return {'message': 'Evènement effacé'}, 200
+
 
 @blueprint.route('/', methods=['GET'])
 @json_resp
